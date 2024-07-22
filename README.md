@@ -10,7 +10,7 @@ To install from pypi run:
 
 
 ```sh
-pip3 install gitget-pm
+pip3 install gitget
 ```
 
 ## Usage

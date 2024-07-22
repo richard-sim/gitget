@@ -1,6 +1,6 @@
 from ._base import Base
 from loguru import logger
-from gitgetpm import commands
+from gitget import commands
 from docopt import docopt
 from inspect import getmembers, isclass
 
