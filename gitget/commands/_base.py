@@ -19,10 +19,10 @@ class Base(object):
         filepath = path.join(curr_dir, filename)
         if path.isfile(filepath):
             return filepath
-        base_dir = path.basename(curr_dir)
-        if base_dir == "":
+        parent_dir = path.dirname(curr_dir)
+        if parent_dir == "" or parent_dir == curr_dir:
             return None
-        return Base.find_in_dir_tree(base_dir, filename)
+        return Base.find_in_dir_tree(parent_dir, filename)
 
     @staticmethod
     def get_package_list_filepath():
