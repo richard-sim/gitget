@@ -30,12 +30,11 @@ class Move(Base):
             logger.debug("Location to move package to is valid")
         else:
             logger.error("Location to move package to is not valid")
+            exit(1)
 
         # verify that the package exists in the package list
         logger.debug("Checking if package in package list")
-        try:
-            _ = package_list[package_name]
-        except KeyError as e:
+        if not package_name in package_list:
             logger.error(f"Package name is not valid: {package_name}")
             exit(1)
 

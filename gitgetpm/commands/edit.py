@@ -16,7 +16,7 @@ class Edit(Base):
     """
 
     def run(self):
-        filepath = self.get_package_list_filepath()
+        filepath = Base.get_package_list_filepath()
 
         # https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
         logger.debug("Attempting to open the text editor")

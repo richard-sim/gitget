@@ -19,8 +19,8 @@ setup(
     description="A package manager for git repositories.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/awesmubarak/gitget",
-    author="Awes Mubarak",
+    url="https://github.com/richard-sim/gitget",
+    author="Awes Mubarak, Richard Sim",
     author_email="contact@awesmubarak.com",
     license="MIT",
     classifiers=[

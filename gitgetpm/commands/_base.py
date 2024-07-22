@@ -1,4 +1,4 @@
-from os import path
+from os import path, getcwd
 from loguru import logger
 import yaml
 
@@ -14,16 +14,36 @@ class Base(object):
     def run(self):
         pass
 
-    def get_package_list_filepath(*args, **kwargs):
+    @staticmethod
+    def find_in_dir_tree(curr_dir, filename):
+        filepath = path.join(curr_dir, filename)
+        if path.isfile(filepath):
+            return filepath
+        base_dir = path.basename(curr_dir)
+        if base_dir == "":
+            return None
+        return Base.find_in_dir_tree(base_dir, filename)
+
+    @staticmethod
+    def get_package_list_filepath():
         """Returns the filepath of the file containing the package info."""
         logger.debug("Getting the package file filepath")
-        user = path.expanduser("~")
-        filepath = f"{user}/.gitget.yaml"
-        logger.debug("Filepath found")
+        filepath = Base.find_in_dir_tree(getcwd(), ".gitget.yaml")
+        if filepath is None:
+            filepath = path.expanduser(path.join("~", ".gitget.yaml"))
+        logger.debug(f"Package file: {filepath}")
         return filepath
 
     @staticmethod
-    def check_package_list_file(package_list_path, *args, **kwargs):
+    def get_new_package_list_filepath():
+        """Returns the filepath of the file containing the package info."""
+        logger.debug("Getting the package file filepath")
+        filepath = path.abspath(".gitget.yaml")
+        logger.debug(f"Package file: {filepath}")
+        return filepath
+
+    @staticmethod
+    def check_package_list_file(package_list_path):
         """Verifies the package list file exists.
 
         Returns (int):
@@ -43,7 +63,7 @@ class Base(object):
         else:
             return 3
 
-    def get_package_list(*args):
+    def get_package_list(self):
         """Returns the extracted yaml data from the package file."""
         logger.debug("Loading package list")
         package_list_filepath = Base.get_package_list_filepath()
@@ -80,7 +100,7 @@ class Base(object):
             logger.debug("Package list has no content, set to empty dict")
         return package_list
 
-    def write_package_list(_, package_list, *args):
+    def write_package_list(self, package_list):
         """Writes the package information to the package file."""
         logger.debug("Attempting to write package list")
         try:

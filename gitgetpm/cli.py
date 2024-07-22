@@ -5,9 +5,9 @@
 Package manager for git repositories.
 
 Usage:
-    gitget install <package_url> [<package_name>] [options]
+    gitget install (batch <file_name> | <package_url> [<package_name>]) [options] [--git-args=<additional-arguments>]
     gitget remove <package_name> [--soft] [options]
-    gitget update [options]
+    gitget update [options] [--git-args=<additional-arguments>]
     gitget move <package_name> <location> [options]
     gitget list [options]
     gitget edit [options]

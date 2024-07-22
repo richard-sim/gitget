@@ -16,25 +16,25 @@ class Setup(Base):
     """
 
     def run(self):
-        package_list_path = self.get_package_list_filepath()
-        package_file_status = self.check_package_list_file(
+        package_list_path = Base.get_new_package_list_filepath()
+        package_file_status = Base.check_package_list_file(
             package_list_path=package_list_path
         )
 
         logger.debug("Verifying package file status")
         if package_file_status == 1:
-            logger.debug("Package file `.gitget.yaml` missing in home directory")
+            logger.debug(f"Package file `{package_list_path}` doesn't exist")
         elif package_file_status == 2:
             logger.error(
-                "Package file `.gitget.yaml` is a directory, please manually remove"
+                f"Package file `{package_list_path}` is a directory, please manually remove"
             )
             exit(1)
         elif package_file_status == 3:
-            logger.error("Package file found")
+            logger.error(f"Package file `{package_list_path}` already exists")
             exit(1)
 
         # create the file
         logger.debug("Creating file")
         with open(package_list_path, "w") as file:
             file.write("")
-        logger.info("Created package file `gitget.yaml` in home directory")
+        logger.info(f"Created package file: {package_list_path}")
