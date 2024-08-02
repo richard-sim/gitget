@@ -2,7 +2,15 @@ from ._base import Base
 from distutils.util import strtobool
 from git import Repo
 from loguru import logger
+import os
+import stat
+import errno
 from shutil import rmtree
+
+
+def remove_readonly(func, path, excinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 
 class Remove(Base):
@@ -68,6 +76,6 @@ class Remove(Base):
 
         logger.info("Deleting files")
         try:
-            rmtree(package_location)
+            rmtree(package_location, onerror=remove_readonly)
         except:
             logger.exception("Could not delete the files")

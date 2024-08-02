@@ -86,3 +86,16 @@ Opens the default editor (run `echo $EDITOR`) to edit the package file.
 
 Creates the `.gitget.yaml` package file, where all the package information is
 saved.
+
+## Development
+
+```shell
+conda activate py3.10
+
+pip uninstall gitget
+
+python setup.py build
+python setup.py install
+
+gitget --version
+```
