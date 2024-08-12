@@ -31,14 +31,19 @@ class Remove(Base):
 
     def run(self):
         package_list = self.get_package_list()
+        inv_package_list = { v: k for k, v in package_list.items() }
         package_name = self.options["<package_name>"]
         soft_remove = self.options["--soft"]
 
         # check if package exists
         logger.debug("Checking if package in package list")
         if not package_name in package_list:
-            logger.error("Package name not in package list")
-            exit(1)
+            package_path = os.path.abspath(package_name)
+            if package_path in inv_package_list:
+                package_name = inv_package_list[package_path]
+            else:
+                logger.error("Package name not in package list")
+                exit(1)
         else:
             logger.debug("Package in package list")
         package_location = package_list[package_name]
