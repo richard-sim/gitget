@@ -2,6 +2,7 @@ from .doctor import *
 from .edit import *
 from .help import *
 from .install import *
+from .importCmd import *
 from .list import *
 from .move import *
 from .remove import *

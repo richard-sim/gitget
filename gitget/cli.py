@@ -6,6 +6,7 @@ Package manager for git repositories.
 
 Usage:
     gitget install (batch <file_name> | <package_url> [<package_name>]) [options] [--git-args=<additional-arguments>]
+    gitget import <package_path> [<package_name>] [options]
     gitget remove <package_name> [--soft] [options]
     gitget update [options] [--git-args=<additional-arguments>]
     gitget move <package_name> <location> [options]
@@ -24,8 +25,11 @@ Global options:
 Examples:
     gitget setup
     gitget install awesmubarak/git-get
+    gitget remove awesmubarak_git-get
+    gitget import dev/git-get my-git-get
+    gitget remove dev/git-get
+    gitget import dev/*
     gitget update
-    gitget remove awesmubarak/git-get
 
 Help:
     For help using this tool, please open an issue on the Github repository:
@@ -87,6 +91,8 @@ def main():
         commands.help.Help(arguments).run()
     elif arguments["install"]:
         commands.install.Install(arguments).run()
+    elif arguments["import"]:
+        commands.importCmd.Import(arguments).run()
     elif arguments["list"]:
         commands.list.List(arguments).run()
     elif arguments["move"]:
