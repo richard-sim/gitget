@@ -3,8 +3,9 @@ from .edit import *
 from .help import *
 from .install import *
 from .importCmd import *
+from .update import *
 from .list import *
 from .move import *
 from .remove import *
 from .setup import *
-from .update import *
+from .config import *

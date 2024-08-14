@@ -76,11 +76,11 @@ class Install(Base):
         logger.debug("Deciding on package name")
         if package_name is not None:
             # use argument
-            logger.debug("Using the name provided as argument")
+            logger.debug(f"Using the provided name: {package_name}")
         else:
-            # use the last part of the url
-            logger.debug("Using the URL to generate a name")
-            package_name = "_".join(package_url.split("/")[-2:])
+            # use the last part(s) of the url
+            package_name = Base.generate_name_from_url(package_url, include_owner=True, owner_first=True)
+            logger.debug(f"Using the URL to generate a name: {package_name}")
 
         # check if the package is in the package list already
         logger.debug("Checking if the package name already exists")
@@ -159,7 +159,7 @@ class Install(Base):
             logger.exception("Could not clone the repository")
             return False
         UpdateProgress.clear_line()
-        logger.debug("Clone successfull")
+        logger.debug("Clone successful")
 
         # add package to package list
         logger.debug("Adding package to package list")

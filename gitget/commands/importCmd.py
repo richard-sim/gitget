@@ -9,17 +9,16 @@ class Import(Base):
 
     Imports an exsiting package so it can be managed by gitget.
 
-    Usage: gitget import <package_path> <package_name> [global options]
+    Usage: gitget import <package_path> [global options]
 
     Examples:
-        gitget import 'dev/git-get' 'git-get'
+        gitget import 'dev/git-get'
     """
 
     def run(self):
         package_list = self.get_package_list()
         inv_package_list = { v: k for k, v in package_list.items() }
         package_path = self.options["<package_path>"]
-        explicit_package_name = self.options["<package_name>"]
 
         # verify the package path
         logger.debug("Verifying package")
@@ -39,15 +38,10 @@ class Import(Base):
             if not package_paths:
                 logger.error(f"No packages found matching '{package_path}'")
                 exit(1)
-            if len(package_paths) > 1 and explicit_package_name:
-                logger.error("Package name must not be provided when importing multiple packages")
-                exit(1)
 
         modified = False
         for package_path in package_paths:
-            package_name = explicit_package_name
-            if not package_name:
-                package_name = path.basename(package_path)
+            package_name = path.basename(package_path)
             # verify that the package doesn't already exist in the package list
             logger.debug("Checking if {package_name} ({package_path}) exists in package list")
             if package_name in package_list:

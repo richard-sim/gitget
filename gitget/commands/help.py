@@ -10,10 +10,10 @@ class Help(Base):
 
     Displays a help menu for a specific command.
 
-    Usage: gitget help [global options]
+    Usage: gitget help <command> [global options]
 
     Examples:
-        gitget help
+        gitget help import
     """
 
     def run(self):
@@ -25,8 +25,12 @@ class Help(Base):
         if hasattr(commands, called_command) and called_command != "base":
             logger.debug("Command is valid")
         else:
-            logger.error("Command is not valid")
-            exit(1)
+            called_command = f"{called_command}Cmd"
+            if hasattr(commands, called_command):
+                logger.debug("Command is valid")
+            else:
+                logger.error("Command is not valid")
+                exit(1)
 
         # display the docstring
         logger.debug("Displaying the docstring for the command")

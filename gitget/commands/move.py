@@ -13,7 +13,7 @@ class Move(Base):
     Usage: gitget move <package_name> <location> [global options]
 
     Examples:
-        gitget move 'awesmubarak/gitget' ..
+        gitget move 'awesmubarak/gitget' '../dev'
     """
 
     def run(self):
@@ -22,7 +22,7 @@ class Move(Base):
         location = self.options["<location>"]
 
         # verify location to move to
-        logger.debug("Verifying the location to move to ")
+        logger.debug("Verifying the location to move to")
         location = path.abspath(location)
         path_exists = path.exists(location)
         path_is_dir = path.isdir(location)

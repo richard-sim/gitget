@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 
 from setuptools import setup
-from codecs import open
 from os import path
+from gitget.version import __version__
 
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
 with open(path.join(here, "README.md"), encoding="utf-8") as file:
     long_description = file.read()
-
-# Get the Version
-exec(open("gitget/version.py").read())
 
 setup(
     name="gitget",
@@ -20,8 +17,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/richard-sim/gitget",
-    author="Awes Mubarak, Richard Sim",
-    author_email="contact@awesmubarak.com",
+    author="Richard Sim, Awes Mubarak",
+    author_email="richard-sim@users.noreply.github.com",
     license="MIT",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -32,8 +29,8 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
     ],
-    keywords="git github package manager",
+    keywords="git github package manager packages package-manager repo repository clone manage update doctor install import move remove rename list edit setup",
     packages=["gitget", "gitget.commands"],
     entry_points={"console_scripts": ["gitget=gitget:main"]},
-    install_requires=["docopt", "loguru", "gitpython", "pyyaml", "tabulate"],
+    install_requires=["docopt", "loguru", "gitpython", "pyyaml", "tabulate", "semver"],
 )
