@@ -10,7 +10,7 @@ class Help(Base):
 
     Displays a help menu for a specific command.
 
-    Usage: gitget help <command> [global options]
+    Usage: gitget [global options] help <command>
 
     Examples:
         gitget help import

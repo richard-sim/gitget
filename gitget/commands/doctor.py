@@ -8,7 +8,7 @@ class Doctor(Base):
     Verifies integrity of files and packages. Any errors are then reported
     and need to be fixed.
 
-    Usage: gitget doctor [global options]
+    Usage: gitget [global options] doctor
 
     Examples:
         gitget doctor

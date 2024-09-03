@@ -8,7 +8,7 @@ class Track(Base):
 
     Tracks an exsiting package so it can be managed by gitget.
 
-    Usage: gitget track <package_path> [global options]
+    Usage: gitget [global options] track <package_path>
 
     Examples:
         gitget track 'dev/git-get'

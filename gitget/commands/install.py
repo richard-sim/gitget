@@ -15,14 +15,14 @@ class Install(Base):
     be used as the directory name. Otherwise, the package name is set to
     `username/repository`.
 
-    Usage: gitget install (batch <file_name> | <package_url> [<package_name>]) [global options] [--git-clone-args=<additional-arguments>]
+    Usage: gitget [global options] [--git-clone-args=<additional-arguments>] install (batch <file_name> | <package_url> [<package_name>])
 
     Examples:
         gitget install 'https://github.com/awesmubarak/gitget'
         gitget install 'https://github.com/awesmubarak/gitget' 'gitget-download'
-        gitget install 'https://github.com/awesmubarak/gitget' --git-clone-args="--recurse-submodules --jobs 8"
+        gitget --git-clone-args="--recurse-submodules --jobs 8" install 'https://github.com/awesmubarak/gitget'
         gitget install batch some_packages.txt
-        gitget install batch some_packages.txt --git-clone-args="--filter=tree:0 --also-filter-submodules --recurse-submodules --jobs 8"
+        gitget --git-clone-args="--filter=tree:0 --also-filter-submodules --recurse-submodules --jobs 8" install batch some_packages.txt
     """
 
     def run(self):

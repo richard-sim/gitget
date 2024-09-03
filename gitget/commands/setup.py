@@ -9,7 +9,7 @@ class Setup(Base):
     Creates the files gitget needs to function. Only `.gitget.yaml` is needed in
     the home directory.
 
-    Usage: gitget setup [global options]
+    Usage: gitget [global options] setup
 
     Examples:
         gitget setup

@@ -19,7 +19,7 @@ class Remove(Base):
     Removes a repository from the package list and also deletes the files
     locally.
 
-    Usage: gitget remove <package_name> [options] [global options]
+    Usage: gitget [global options] [options] remove <package_name>
 
     Options:
         --soft  Local files will not be deleted (same as untrack)

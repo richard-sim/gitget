@@ -10,7 +10,7 @@ class Rename(Base):
     Renames a package from location to another and updates the information about
     it.
 
-    Usage: gitget rename <package_name> <new_name> [global options]
+    Usage: gitget [global options] rename <package_name> <new_name>
 
     Examples:
         gitget rename 'awesmubarak/gitget' ..

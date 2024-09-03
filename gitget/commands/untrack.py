@@ -11,7 +11,7 @@ class Untrack(Base):
     Untracks a repository from the package list (does not delete the files
     locally).
 
-    Usage: gitget untrack <package_name> [global options]
+    Usage: gitget [global options] untrack <package_name>
 
     Examples:
         gitget untrack awesmubarak/gitget

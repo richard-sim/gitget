@@ -12,7 +12,7 @@ class Update(Base):
 
     Runs `git-pull` on all packages in the package list to update them.
 
-    Usage: gitget update [global options] [--git-pull-args=<additional-arguments>]
+    Usage: gitget [global options] [--git-pull-args=<additional-arguments>] update
 
     Examples:
         gitget update

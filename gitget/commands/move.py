@@ -10,7 +10,7 @@ class Move(Base):
     Moves a package from location to another and updates the information about
     it.
 
-    Usage: gitget move <package_name> <location> [global options]
+    Usage: gitget [global options] move <package_name> <location>
 
     Examples:
         gitget move 'awesmubarak/gitget' '../dev'

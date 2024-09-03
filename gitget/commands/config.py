@@ -10,7 +10,7 @@ class Config(Base):
 
     Query or modify the gitget configuration.
 
-    Usage: gitget config (list | get <key> | set <key> <value> | unset <key>) [global options]
+    Usage: gitget [global options] config (list | get <key> | set <key> <value> | unset <key>)
 
     Examples:
         gitget config set "--git-clone-args" "--recurse-submodules --jobs 8"

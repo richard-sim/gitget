@@ -9,7 +9,7 @@ class Edit(Base):
 
     Opens the default editor (run `echo $EDITOR`) to edit the package file.
 
-    Usage: gitget edit [global options]
+    Usage: gitget [global options] edit
 
     Examples:
         gitget edit
