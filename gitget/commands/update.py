@@ -69,9 +69,11 @@ class Update(Base):
                 repo = git.Repo(package_path)
                 origins = repo.remotes.origin
                 origins.pull(progress=UpdateProgress(), **git_args)
+                UpdateProgress.clear_line()
                 packages_succeeded += 1
                 logger.debug("Package updated successfully")
             except Exception:
+                UpdateProgress.clear_line()
                 packages_failed += 1
                 logger.exception(f"Package {package_name} could not be updated")
         logger.info(f"{packages_succeeded}/{number_of_packages} packages updated, {packages_failed} failed.")
