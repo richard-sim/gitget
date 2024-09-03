@@ -8,10 +8,15 @@ class List(Base):
 
     Lists all packages and install locations.
 
-    Usage: gitget list [global options]
+    Usage: gitget [global options] [options] list
+
+    Options:
+        --format  Table format to pass to tabulate (default: simple_outline)
 
     Examples:
         gitget list
+        gitget --format tsv list
+        gitget --format html list
     """
 
     def run(self):
@@ -36,7 +41,11 @@ class List(Base):
             license = package["license"]["name"] if package["license"] else ""
             table.append([package_name, path, last_commit, url, description, topics, license])
 
+        table_format = self.options["--format"]
+        if not table_format:
+            table_format = "simple_outline"
+
         logger.debug("Printing table")
         number_str = f"{len(package_list)} packages:"
-        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics", "License"], tablefmt="simple_outline")
+        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics", "License"], tablefmt=table_format)
         logger.info(f"{number_str}\n\n{table}\n")

@@ -8,11 +8,11 @@ Usage:
     gitget [options] install (batch <file_name> | <package_url> [<package_name>])
     gitget [options] track <package_path>
     gitget [options] untrack <package_name>
-    gitget [options] remove <package_name>
+    gitget [options] [--soft] remove <package_name>
     gitget [options] update
     gitget [options] move <package_name> <location>
     gitget [options] rename <package_name> <new_name>
-    gitget [options] list
+    gitget [options] [--format=<tabulate-format>] list
     gitget [options] edit
     gitget [options] doctor
     gitget [options] setup
@@ -21,7 +21,7 @@ Usage:
     gitget -h | --help
     gitget --version
 
-Global options:
+Options:
     --debug    Increases verbosity of the output
     --nocolor  Logs will not have colors in them
     --git-clone-args=<additional-arguments>
@@ -32,6 +32,8 @@ Global options:
                Auth token to use for authenticating with the GitHub API
     --gitlab-auth-token=<auth-token>
                Auth token to use for authenticating with the GitLab API
+    --format=<tabluate-format>
+               Table format to pass to tabulate (default: simple_outline)
 
 Examples:
     gitget setup
@@ -48,7 +50,9 @@ Examples:
     gitget track dev/my-git-get
     gitget remove dev/my-git-get
     gitget track dev/*
+    gitget list
     gitget untrack dev/my-git-get
+    gitget --format tsv list
     gitget update
 
 Help:
