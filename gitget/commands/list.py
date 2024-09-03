@@ -34,9 +34,9 @@ class List(Base):
             last_commit = package["last_commit_at"].strftime("%A, %d. %B %Y %I:%M%p %Z") if package["last_commit_at"] else ""
             topics = ", ".join(package["topics"]) if package["topics"] else ""
             license = package["license"]["name"] if package["license"] else ""
-            table.append([package_name, path, last_commit, url, description, topics])
+            table.append([package_name, path, last_commit, url, description, topics, license])
 
         logger.debug("Printing table")
         number_str = f"{len(package_list)} packages:"
-        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics"])
+        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics", "License"], tablefmt="simple_outline")
         logger.info(f"{number_str}\n\n{table}\n")
