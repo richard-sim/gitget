@@ -52,8 +52,8 @@ Examples:
     gitget update
 
 Help:
-    For help using this tool, please open an issue on the Github repository:
-    https://github.com/awesmubarak/gitget
+    For help using this tool, please open an issue on the GitHub repository:
+    https://github.com/richard-sim/gitget
 
 """
 

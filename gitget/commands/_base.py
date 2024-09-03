@@ -19,6 +19,9 @@ class Base(object):
         self.kwargs = kwargs
         self.configuration = None
         self.github = None
+        self.github_rate_limit = None
+        self.github_rate_limit_core = None
+        self.github_rate_limit_graphql = None
         self.gitlab = None
 
     def run(self):
@@ -236,7 +239,7 @@ class Base(object):
                 "last_commit_at": Base.datetime_from_utc_iso_string(repo.last_activity_at),
             }
             return package
-        logger.warning(f"Full details are only supported for Github and Gitlab repositories: {url}")
+        logger.warning(f"Full details are only supported for GitHub and GitLab repositories: {url}")
         package = {
             "name": package_name,
             "path": package_path,
@@ -312,8 +315,10 @@ class Base(object):
             if self.options["--github-auth-token"]:
                 auth = Auth.Token(self.options["--github-auth-token"])
                 self.github = Github(auth=auth)
+                self.update_github_rate_limit()
             else:
                 self.github = Github()
+                self.update_github_rate_limit()
         except Exception as ex:
             logger.error("Could not create GitHub client:")
             logger.error(ex)
@@ -331,6 +336,28 @@ class Base(object):
                 logger.error(ex)
                 exit(1)
 
+    def update_github_rate_limit(self):
+        """Updates the GitHub rate limit."""
+        if self.github is None:
+            self.init_github_client()
+        logger.debug("Updating GitHub rate limit")
+        try:
+            self.github_rate_limit = self.github.get_rate_limit()
+            core_rl = self.github_rate_limit.core.raw_data
+            core_rl["reset"] = self.github_rate_limit.core.reset
+            core_rl["reset_str"] = core_rl["reset"].strftime("%A, %d. %B %Y %I:%M%p %Z")
+            graphql_rl = self.github_rate_limit.graphql.raw_data
+            graphql_rl["reset"] = self.github_rate_limit.graphql.reset
+            graphql_rl["reset_str"] = graphql_rl["reset"].strftime("%A, %d. %B %Y %I:%M%p %Z")
+            self.github_rate_limit_core = core_rl
+            self.github_rate_limit_graphql = graphql_rl
+            logger.debug(f"GitHub core rate limit: {core_rl['used']}/{core_rl['limit']}, {core_rl['remaining']} (reset: {core_rl['reset_str']})")
+            logger.debug(f"GitHub graphql rate limit: {graphql_rl['used']}/{graphql_rl['limit']}, {graphql_rl['remaining']} (reset: {graphql_rl['reset_str']})")
+        except Exception as ex:
+            logger.error("Could not update GitHub rate limit:")
+            logger.error(ex)
+            exit(1)
+
     def get_github_repo(self, package_url):
         """Returns the GitHub repository object."""
         if self.github is None:
@@ -339,6 +366,7 @@ class Base(object):
         try:
             owner, repo = Base.get_owner_and_repo(package_url)
             repo = self.github.get_repo(f"{owner}/{repo}")
+            self.update_github_rate_limit()
             return repo
         except Exception as ex:
             logger.error("Could not get GitHub repo:")
@@ -346,10 +374,10 @@ class Base(object):
             exit(1)
 
     def init_gitlab_client(self):
-        """Initializes the Gitlab client."""
+        """Initializes the GitLab client."""
         if self.gitlab is not None:
             self.close_gitlab_client()
-        logger.debug("Creating Gitlab client")
+        logger.debug("Creating GitLab client")
         try:
             if self.options["--gitlab-auth-token"]:
                 self.gitlab = Gitlab("https://gitlab.com", private_token=self.options["--gitlab-auth-token"])
@@ -357,33 +385,33 @@ class Base(object):
                 self.gitlab = Gitlab("https://gitlab.com")
             self.gitlab.auth()
         except Exception as ex:
-            logger.error("Could not create Gitlab client:")
+            logger.error("Could not create GitLab client:")
             logger.error(ex)
             exit(1)
 
     def close_gitlab_client(self):
-        """Closes the Gitlab client."""
+        """Closes the GitLab client."""
         if self.gitlab is not None:
-            logger.debug("Closing Gitlab client")
+            logger.debug("Closing GitLab client")
             try:
-                self.gitlab.close()
+                # There is no close method for the GitLab client
                 self.gitlab = None
             except Exception as ex:
-                logger.error("Could not close Gitlab client:")
+                logger.error("Could not close GitLab client:")
                 logger.error(ex)
                 exit(1)
 
     def get_gitlab_repo(self, package_url):
-        """Returns the Gitlab repository object."""
+        """Returns the GitLab repository object."""
         if self.gitlab is None:
             self.init_gitlab_client()
-        logger.debug(f"Getting Gitlab repo for {package_url}")
+        logger.debug(f"Getting GitLab repo for {package_url}")
         try:
             owner, repo = Base.get_owner_and_repo(package_url)
             repo = self.gitlab.projects.get(f"{owner}/{repo}", license=True)
             return repo
         except Exception as ex:
-            logger.error("Could not get Gitlab repo:")
+            logger.error("Could not get GitLab repo:")
             logger.error(ex)
             exit(1)
 
