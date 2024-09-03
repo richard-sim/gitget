@@ -127,6 +127,12 @@ class Base(object):
                 package_list = package_document["packages"]
                 self.configuration = package_document["configuration"]
                 logger.debug(f"Configuration: {yaml.dump(self.configuration, default_flow_style=True)}")
+
+                # Apply the options from the configuration, if any
+                default_options = self.configuration.get("options", {})
+                # Specified options will take precedence over the default options
+                self.options = Base.merge(self.options, default_options)
+
                 if semver.compare(self.configuration["version"], __version__) < 0:
                     logger.debug(f"Old package list version loaded: {self.configuration['version']} < {__version__}")
 
@@ -134,6 +140,7 @@ class Base(object):
                     if semver.compare(self.configuration["version"], "4.0.0") < 0:
                         new_package_list = {}
                         for package_name, package_path in package_list.items():
+                            logger.debug(f"Updating package {package_name} ({package_path})")
                             new_package_list[package_name] = self.get_package_for_path(package_name, package_path)
                         package_list = new_package_list
 
@@ -148,11 +155,6 @@ class Base(object):
                 # Perform any necessary updates here
 
                 self.write_package_list(package_list)
-
-        # Apply the options from the configuration, if any
-        default_options = self.configuration.get("options", {})
-        # Specified options will take precedence over the default options
-        self.options = Base.merge(self.options, default_options)
 
         return package_list
 
@@ -313,10 +315,12 @@ class Base(object):
         logger.debug("Creating GitHub client")
         try:
             if self.options["--github-auth-token"]:
+                logger.debug("Accessing the GitHub API with an auth token")
                 auth = Auth.Token(self.options["--github-auth-token"])
                 self.github = Github(auth=auth)
                 self.update_github_rate_limit()
             else:
+                logger.debug("Accessing the GitHub API anonymously")
                 self.github = Github()
                 self.update_github_rate_limit()
         except Exception as ex:
@@ -351,8 +355,8 @@ class Base(object):
             graphql_rl["reset_str"] = graphql_rl["reset"].strftime("%A, %d. %B %Y %I:%M%p %Z")
             self.github_rate_limit_core = core_rl
             self.github_rate_limit_graphql = graphql_rl
-            logger.debug(f"GitHub core rate limit: {core_rl['used']}/{core_rl['limit']}, {core_rl['remaining']} (reset: {core_rl['reset_str']})")
-            logger.debug(f"GitHub graphql rate limit: {graphql_rl['used']}/{graphql_rl['limit']}, {graphql_rl['remaining']} (reset: {graphql_rl['reset_str']})")
+            logger.debug(f"GitHub core rate limit: {core_rl['used']}/{core_rl['limit']}, {core_rl['remaining']} remaining (reset: {core_rl['reset_str']})")
+            logger.debug(f"GitHub graphql rate limit: {graphql_rl['used']}/{graphql_rl['limit']}, {graphql_rl['remaining']} remaining (reset: {graphql_rl['reset_str']})")
         except Exception as ex:
             logger.error("Could not update GitHub rate limit:")
             logger.error(ex)
@@ -380,8 +384,10 @@ class Base(object):
         logger.debug("Creating GitLab client")
         try:
             if self.options["--gitlab-auth-token"]:
+                logger.debug("Accessing the GitLab API with an auth token")
                 self.gitlab = Gitlab("https://gitlab.com", private_token=self.options["--gitlab-auth-token"])
             else:
+                logger.debug("Accessing the GitLab API anonymously")
                 self.gitlab = Gitlab("https://gitlab.com")
             self.gitlab.auth()
         except Exception as ex:
