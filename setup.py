@@ -29,8 +29,8 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
     ],
-    keywords="git github package manager packages package-manager repo repository clone manage update doctor install import move remove rename list edit setup",
+    keywords="git github gitlab package manager packages package-manager packman repo repository repository-manager clone pull manage update doctor install import move remove rename track untrack list edit setup",
     packages=["gitget", "gitget.commands"],
     entry_points={"console_scripts": ["gitget=gitget:main"]},
-    install_requires=["docopt", "loguru", "gitpython", "pyyaml", "tabulate", "semver"],
+    install_requires=["docopt", "loguru", "gitpython", "pygithub", "python-gitlab", "pyyaml", "tabulate", "semver"],
 )

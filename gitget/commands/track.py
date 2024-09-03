@@ -3,21 +3,20 @@ from loguru import logger
 from os import path
 from glob import glob
 
+class Track(Base):
+    """Track.
 
-class Import(Base):
-    """Import.
+    Tracks an exsiting package so it can be managed by gitget.
 
-    Imports an exsiting package so it can be managed by gitget.
-
-    Usage: gitget import <package_path> [global options]
+    Usage: gitget track <package_path> [global options]
 
     Examples:
-        gitget import 'dev/git-get'
+        gitget track 'dev/git-get'
     """
 
     def run(self):
         package_list = self.get_package_list()
-        inv_package_list = { v: k for k, v in package_list.items() }
+        inv_package_list = { package["path"]: package for package_name, package in package_list.items() }
         package_path = self.options["<package_path>"]
 
         # verify the package path
@@ -45,15 +44,18 @@ class Import(Base):
             # verify that the package doesn't already exist in the package list
             logger.debug("Checking if {package_name} ({package_path}) exists in package list")
             if package_name in package_list:
-                logger.warning(f"Package {package_name} ({package_path}) already exists: ({package_list[package_name]})")
+                existing_path = package_list[package_name]["path"]
+                logger.warning(f"Package {package_name} ({package_path}) already exists: ({existing_path})")
                 continue
             if package_path in inv_package_list:
-                logger.warning(f"Package {package_name} ({package_path}) already exists as: ({inv_package_list[package_path]})")
+                existing_name = inv_package_list[package_path]["name"]
+                logger.warning(f"Package {package_name} ({package_path}) already exists as: ({existing_name})")
                 continue
-            package_list[package_name] = package_path
-            inv_package_list[package_path] = package_name
+            package = self.get_package_for_path(package_name, package_path)
+            package_list[package_name] = package
+            inv_package_list[package_path] = package
             modified = True
-            logger.info(f"Imported package {package_name} ({package_path})")
+            logger.info(f"Tracked package {package_name} ({package_path})")
 
         # update package list
         if modified:
@@ -61,4 +63,4 @@ class Import(Base):
             self.write_package_list(package_list)
             logger.info("Saved package information")
         else:
-            logger.warning("No new packages were imported")
+            logger.warning("No new packages were tracked")

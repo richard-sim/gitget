@@ -41,7 +41,8 @@ class Move(Base):
         # move the package to the location
         logger.debug("Attempting to move package")
         try:
-            mmove(package_list[package_name], location)
+            old_location = package_list[package_name]["path"]
+            mmove(old_location, location)
             logger.info("Moved package")
         except:
             logger.error("Could not move the package")
@@ -49,6 +50,6 @@ class Move(Base):
 
         # update package list
         logger.debug("Updating package list")
-        package_list[package_name] = location
+        package_list[package_name]["path"] = location
         self.write_package_list(package_list)
         logger.info("Saved package information")

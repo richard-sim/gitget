@@ -6,7 +6,8 @@ Package manager for git repositories.
 
 Usage:
     gitget [options] install (batch <file_name> | <package_url> [<package_name>])
-    gitget [options] import <package_path>
+    gitget [options] track <package_path>
+    gitget [options] untrack <package_name>
     gitget [options] remove <package_name>
     gitget [options] update
     gitget [options] move <package_name> <location>
@@ -23,14 +24,19 @@ Usage:
 Global options:
     --debug    Increases verbosity of the output
     --nocolor  Logs will not have colors in them
-    --git-args=<additional-arguments>
-               Additional arguments to pass to git commands
-    --soft     Do not delete the package files when removing a package
+    --git-clone-args=<additional-arguments>
+               Additional arguments to pass to git clone commands
+    --git-pull-args=<additional-arguments>
+               Additional arguments to pass to git pull commands
+    --github-auth-token=<auth-token>
+               Auth token to use for authenticating with the GitHub API
+    --gitlab-auth-token=<auth-token>
+               Auth token to use for authenticating with the GitLab API
 
 Examples:
     gitget setup
     gitget config set editor vim
-    gitget config set "--git-args" "--recurse-submodules --jobs 8"
+    gitget config set "--git-clone-args" "--recurse-submodules --jobs 8"
     gitget install awesmubarak/git-get
     gitget remove awesmubarak_git-get
     gitget install awesmubarak/git-get
@@ -39,9 +45,10 @@ Examples:
     gitget install awesmubarak/git-get
     gitget move awesmubarak_git-get dev
     gitget remove awesmubarak_git-get
-    gitget import dev/my-git-get
+    gitget track dev/my-git-get
     gitget remove dev/my-git-get
-    gitget import dev/*
+    gitget track dev/*
+    gitget untrack dev/my-git-get
     gitget update
 
 Help:
@@ -104,8 +111,10 @@ def main():
         commands.edit.Edit(arguments).run()
     elif arguments["install"]:
         commands.install.Install(arguments).run()
-    elif arguments["import"]:
-        commands.importCmd.Import(arguments).run()
+    elif arguments["track"]:
+        commands.track.Track(arguments).run()
+    elif arguments["untrack"]:
+        commands.untrack.Untrack(arguments).run()
     elif arguments["list"]:
         commands.list.List(arguments).run()
     elif arguments["move"]:

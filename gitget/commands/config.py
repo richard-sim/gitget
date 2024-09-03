@@ -13,7 +13,7 @@ class Config(Base):
     Usage: gitget config (list | get <key> | set <key> <value> | unset <key>) [global options]
 
     Examples:
-        gitget config set "--git-args" "--recurse-submodules --jobs 8"
+        gitget config set "--git-clone-args" "--recurse-submodules --jobs 8"
     """
 
     def run(self):

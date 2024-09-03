@@ -22,7 +22,7 @@ class Remove(Base):
     Usage: gitget remove <package_name> [options] [global options]
 
     Options:
-        --soft  Local files will not be deleted
+        --soft  Local files will not be deleted (same as untrack)
 
     Examples:
         gitget remove awesmubarak/gitget
@@ -31,7 +31,7 @@ class Remove(Base):
 
     def run(self):
         package_list = self.get_package_list()
-        inv_package_list = { v: k for k, v in package_list.items() }
+        inv_package_list = { package["path"]: package for package_name, package in package_list.items() }
         package_name = self.options["<package_name>"]
         soft_remove = self.options["--soft"]
 
@@ -40,13 +40,14 @@ class Remove(Base):
         if not package_name in package_list:
             package_path = os.path.abspath(package_name)
             if package_path in inv_package_list:
-                package_name = inv_package_list[package_path]
+                package_name = inv_package_list[package_path]["name"]
             else:
                 logger.error("Package name not in package list")
                 exit(1)
         else:
             logger.debug("Package in package list")
-        package_location = package_list[package_name]
+        package = package_list[package_name]
+        package_location = package["path"]
 
         # conifrm deleting files if asked to do so
         if not soft_remove:
@@ -79,7 +80,7 @@ class Remove(Base):
             logger.debug("Soft remove so not deleting files")
             exit(0)
 
-        logger.info("Deleting files")
+        logger.info(f"Deleting files at {package_location}")
         try:
             rmtree(package_location, onerror=remove_readonly)
         except:

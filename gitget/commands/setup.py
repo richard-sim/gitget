@@ -29,7 +29,7 @@ class Setup(Base):
                 f"Package file `{package_list_path}` is a directory, please manually remove"
             )
             exit(1)
-        elif package_file_status == 3:
+        elif package_file_status == 0:
             logger.error(f"Package file `{package_list_path}` already exists")
             exit(1)
 

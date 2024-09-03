@@ -12,7 +12,7 @@ class Update(Base):
 
     Runs `git-pull` on all packages in the package list to update them.
 
-    Usage: gitget update [global options] [--git-args=<additional-arguments>]
+    Usage: gitget update [global options] [--git-pull-args=<additional-arguments>]
 
     Examples:
         gitget update
@@ -28,8 +28,8 @@ class Update(Base):
             exit(0)
 
         git_args = {}
-        if self.options["--git-args"] is not None:
-            args = shlex.split(self.options["--git-args"])
+        if self.options["--git-pull-args"] is not None:
+            args = shlex.split(self.options["--git-pull-args"])
             for i, arg in enumerate(args):
                 if arg.startswith("-"):
                     if arg.startswith("--"):
@@ -53,16 +53,26 @@ class Update(Base):
             logger.debug(f"Git arguments: {pformat(git_args)}")
 
         logger.debug("Going through each package")
+        packages_succeeded = 0
+        packages_failed = 0
         for package_number, package_name in enumerate(package_list):
-            package_path = package_list[package_name]
+            package = package_list[package_name]
+            package_path = package["path"]
 
-            logger.debug(f"Attempting to update {package_name}")
+            progress = f"[{package_number+1}/{number_of_packages}]"
+            logger.info(f"Updating {package_name}  {progress}")
+
             try:
+                package = self.get_package_for_path(package_name, package_path)
+                package_list[package_name] = package
+
                 repo = git.Repo(package_path)
                 origins = repo.remotes.origin
-                progress = f"[{package_number+1}/{number_of_packages}]"
-                logger.info(f"Updating {package_name}  {progress}")
                 origins.pull(progress=UpdateProgress(), **git_args)
+                packages_succeeded += 1
                 logger.debug("Package updated successfully")
             except Exception:
+                packages_failed += 1
                 logger.exception(f"Package {package_name} could not be updated")
+        logger.info(f"{packages_succeeded}/{number_of_packages} packages updated, {packages_failed} failed.")
+        self.write_package_list(package_list)

@@ -27,10 +27,16 @@ class List(Base):
         # create the table, trimming each section
         logger.debug("Creating table for printing")
         table = []
-        for package_name, package_location in package_list.items():
-            table.append([package_name, package_location])
+        for package_name, package in package_list.items():
+            path = package["path"]
+            url = package["url"] if package["url"] else ""
+            description = package["description"] if package["description"] else ""
+            last_commit = package["last_commit_at"].strftime("%A, %d. %B %Y %I:%M%p %Z") if package["last_commit_at"] else ""
+            topics = ", ".join(package["topics"]) if package["topics"] else ""
+            license = package["license"]["name"] if package["license"] else ""
+            table.append([package_name, path, last_commit, url, description, topics])
 
         logger.debug("Printing table")
         number_str = f"{len(package_list)} packages:"
-        table = tabulate(table, headers=["Package name", "Location"])
+        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics"])
         logger.info(f"{number_str}\n\n{table}\n")

@@ -2,7 +2,8 @@ from .doctor import *
 from .edit import *
 from .help import *
 from .install import *
-from .importCmd import *
+from .track import *
+from .untrack import *
 from .update import *
 from .list import *
 from .move import *

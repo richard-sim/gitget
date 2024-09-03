@@ -16,6 +16,7 @@ class Edit(Base):
     """
 
     def run(self):
+        # The package list isn't used here, but we want it created it if doesn't exist
         package_list = self.get_package_list()
         filepath = Base.get_package_list_filepath()
 

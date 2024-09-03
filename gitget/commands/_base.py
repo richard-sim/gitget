@@ -1,9 +1,14 @@
 from os import path, getcwd
+from datetime import datetime
+from urllib.parse import urlparse
 from loguru import logger
 import yaml
 import semver
+from github import Github
+from github import Auth
+from gitlab import Gitlab
+from git import Repo
 from gitget.version import __version__
-
 
 class Base(object):
     """A base command."""
@@ -13,6 +18,8 @@ class Base(object):
         self.args = args
         self.kwargs = kwargs
         self.configuration = None
+        self.github = None
+        self.gitlab = None
 
     def run(self):
         pass
@@ -46,24 +53,6 @@ class Base(object):
         return filepath
 
     @staticmethod
-    def generate_name_from_url(url, include_owner=True, owner_first=True):
-        """Split the url and get the last part(s).
-        i.e. awesmubarak/gitget -> owner: awesmubarak, repo: gitget
-        
-        Returns the owner and repo name in the format specified by the arguments.
-        """
-        if include_owner:
-            if owner_first:
-                # owner_repo
-                return "_".join(url.split("/")[-2:])
-            else:
-                # repo_owner
-                return "_".join(url.split("/")[-2:].reverse())
-        else:
-            # repo
-            return url.split("/")[-1]
-
-    @staticmethod
     def check_package_list_file(package_list_path):
         """Verifies the package list file exists.
 
@@ -81,8 +70,7 @@ class Base(object):
             return 1
         elif path_exists and path_is_dir:
             return 2
-        else:
-            return 3
+        return 0
 
     @staticmethod
     def merge(dict_1, dict_2):
@@ -140,6 +128,11 @@ class Base(object):
                     logger.debug(f"Old package list version loaded: {self.configuration['version']} < {__version__}")
 
                     # Perform any necessary updates here
+                    if semver.compare(self.configuration["version"], "4.0.0") < 0:
+                        new_package_list = {}
+                        for package_name, package_path in package_list.items():
+                            new_package_list[package_name] = self.get_package_for_path(package_name, package_path)
+                        package_list = new_package_list
 
                     self.configuration["version"] = __version__
                     self.write_package_list(package_list)
@@ -171,3 +164,241 @@ class Base(object):
             logger.exception("Could not write package list")
             exit(1)
         logger.debug(f"Packages written to file: {Base.get_package_list_filepath()}")
+
+    def get_package_for_path(self, package_name, package_path):
+        """Returns the package information from the path. package_path must be an existing git repo."""
+        logger.debug(f"Getting package information for {package_name} ({package_path})")
+        url = self.get_remote_url(package_path)
+
+        return self.get_package_for_url(url, package_name, package_path)
+
+    def get_package_for_url(self, url, package_name, package_path):
+        """Returns the package information for the url. package_path may not exist yet."""
+        logger.debug(f"Getting package information for {package_name} ({package_path}, {url})")
+        owner_name, repo_name = Base.get_owner_and_repo(url)
+
+        url_parts = urlparse(url)
+        if "github.com" in url_parts.netloc:
+            repo = self.get_github_repo(url)
+            license = repo.license
+            if license is not None:
+                license = {
+                    "name": license.name,
+                    "key": license.spdx_id,
+                    "url": license.url,
+                }
+            package = {
+                "name": package_name,
+                "path": package_path,
+                "owner": owner_name,
+                "repo": repo_name,
+                "url": url,
+                "description": repo.description,
+                "homepage": repo.html_url,
+                "languages": [repo.language] if repo.language is not None else [],
+                "size_kb": repo.size,
+                "stars": repo.stargazers_count,
+                "watchers": repo.subscribers_count,
+                "forks": repo.forks_count,
+                "topics": repo.get_topics(),
+                "license": license,
+                "created_at": repo.created_at,
+                "updated_at": repo.updated_at,
+                "last_commit_at": repo.pushed_at,
+            }
+            return package
+        elif "gitlab.com" in url_parts.netloc:
+            repo = self.get_gitlab_repo(url)
+            license = repo.license
+            if license is not None:
+                license = {
+                    "name": license['name'],
+                    "key": license['key'],
+                    "url": license['html_url'],
+                }
+            package = {
+                "name": package_name,
+                "path": package_path,
+                "owner": owner_name,
+                "repo": repo_name,
+                "url": url,
+                "description": repo.description,
+                "homepage": None,
+                "languages": list(repo.languages().keys()) if repo.languages() is not None else [],
+                "size_kb": 0,
+                "stars": repo.star_count,
+                "watchers": 0,
+                "forks": repo.forks_count,
+                "topics": repo.topics,
+                "license": license,
+                "created_at": Base.datetime_from_utc_iso_string(repo.created_at),
+                "updated_at": Base.datetime_from_utc_iso_string(repo.updated_at),
+                "last_commit_at": Base.datetime_from_utc_iso_string(repo.last_activity_at),
+            }
+            return package
+        logger.warning(f"Full details are only supported for Github and Gitlab repositories: {url}")
+        package = {
+            "name": package_name,
+            "path": package_path,
+            "owner": owner_name,
+            "repo": repo_name,
+            "url": url,
+            "description": None,
+            "homepage": None,
+            "languages": [],
+            "size_kb": 0,
+            "stars": 0,
+            "watchers": 0,
+            "forks": 0,
+            "topics": [],
+            "license": None,
+            "created_at": None,
+            "updated_at": None,
+            "last_commit_at": None,
+        }
+        return package
+
+    @staticmethod
+    def datetime_from_utc_iso_string(date_string):
+        """Converts a UTC ISO date string to a datetime object."""
+        if date_string.endswith("Z"):
+            date_string = date_string[:-1]
+        return datetime.fromisoformat(f"{date_string}+00:00")
+
+    @staticmethod
+    def get_owner_and_repo(url):
+        """Split the url and get the owner and repo part(s) as a single string.
+        i.e. awesmubarak/gitget -> owner: awesmubarak, repo: gitget
+        
+        Returns the owner and repo name in the format specified by the arguments.
+        """
+        url_parts = urlparse(url)
+        url_path = url_parts.path
+        # Trim the .git extension, if it exists
+        if url_path.endswith(".git"):
+            url_path = url_path[:-4]
+        path_parts = list(filter(None, url_path.split("/")))
+        # NOTE: If the URL was copied from the address bar of a bitbucket repo, the
+        # path will be /owner/repo/src/branch, so we need to use 0/1, not -2/-1.
+        owner = path_parts[0]
+        repo = path_parts[1]
+        return owner, repo
+
+    @staticmethod
+    def generate_name_from_url(url, include_owner=True, owner_first=True):
+        """Split the url and get the owner and repo part(s) as a single string.
+        i.e. awesmubarak/gitget -> owner: awesmubarak, repo: gitget
+        
+        Returns the owner and repo name in the format specified by the arguments.
+        """
+        owner, repo = Base.get_owner_and_repo(url)
+        if include_owner:
+            if owner_first:
+                # owner_repo
+                return f"{owner}_{repo}"
+            else:
+                # repo_owner
+                return f"{repo}_{owner}"
+        else:
+            # repo
+            return repo
+
+    def init_github_client(self):
+        """Initializes the GitHub client."""
+        if self.github is not None:
+            self.close_github_client()
+        logger.debug("Creating GitHub client")
+        try:
+            if self.options["--github-auth-token"]:
+                auth = Auth.Token(self.options["--github-auth-token"])
+                self.github = Github(auth=auth)
+            else:
+                self.github = Github()
+        except Exception as ex:
+            logger.error("Could not create GitHub client:")
+            logger.error(ex)
+            exit(1)
+
+    def close_github_client(self):
+        """Closes the GitHub client."""
+        if self.github is not None:
+            logger.debug("Closing GitHub client")
+            try:
+                self.github.close()
+                self.github = None
+            except Exception as ex:
+                logger.error("Could not close GitHub client:")
+                logger.error(ex)
+                exit(1)
+
+    def get_github_repo(self, package_url):
+        """Returns the GitHub repository object."""
+        if self.github is None:
+            self.init_github_client()
+        logger.debug(f"Getting GitHub repo for {package_url}")
+        try:
+            owner, repo = Base.get_owner_and_repo(package_url)
+            repo = self.github.get_repo(f"{owner}/{repo}")
+            return repo
+        except Exception as ex:
+            logger.error("Could not get GitHub repo:")
+            logger.error(ex)
+            exit(1)
+
+    def init_gitlab_client(self):
+        """Initializes the Gitlab client."""
+        if self.gitlab is not None:
+            self.close_gitlab_client()
+        logger.debug("Creating Gitlab client")
+        try:
+            if self.options["--gitlab-auth-token"]:
+                self.gitlab = Gitlab("https://gitlab.com", private_token=self.options["--gitlab-auth-token"])
+            else:
+                self.gitlab = Gitlab("https://gitlab.com")
+            self.gitlab.auth()
+        except Exception as ex:
+            logger.error("Could not create Gitlab client:")
+            logger.error(ex)
+            exit(1)
+
+    def close_gitlab_client(self):
+        """Closes the Gitlab client."""
+        if self.gitlab is not None:
+            logger.debug("Closing Gitlab client")
+            try:
+                self.gitlab.close()
+                self.gitlab = None
+            except Exception as ex:
+                logger.error("Could not close Gitlab client:")
+                logger.error(ex)
+                exit(1)
+
+    def get_gitlab_repo(self, package_url):
+        """Returns the Gitlab repository object."""
+        if self.gitlab is None:
+            self.init_gitlab_client()
+        logger.debug(f"Getting Gitlab repo for {package_url}")
+        try:
+            owner, repo = Base.get_owner_and_repo(package_url)
+            repo = self.gitlab.projects.get(f"{owner}/{repo}", license=True)
+            return repo
+        except Exception as ex:
+            logger.error("Could not get Gitlab repo:")
+            logger.error(ex)
+            exit(1)
+
+    def get_remote_url(self, package_path):
+        """Returns the remote URL of the repository."""
+        logger.debug(f"Getting remote URL for {package_path}")
+        try:
+            repo = Repo(package_path)
+            try:
+                remote = repo.remotes.origin
+            except AttributeError:
+                # Named something other than origin?
+                remote = repo.remotes[0]
+            return remote.url
+        except Exception as ex:
+            logger.error("Could not get remote URL:")
+            logger.error(ex)
+            exit(1)

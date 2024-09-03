@@ -7,7 +7,6 @@ from pprint import pformat
 import http.client as httplib
 from ._updateprogress import UpdateProgress
 
-
 class Install(Base):
     """Install.
 
@@ -16,14 +15,14 @@ class Install(Base):
     be used as the directory name. Otherwise, the package name is set to
     `username/repository`.
 
-    Usage: gitget install (batch <file_name> | <package_url> [<package_name>]) [global options] [--git-args=<additional-arguments>]
+    Usage: gitget install (batch <file_name> | <package_url> [<package_name>]) [global options] [--git-clone-args=<additional-arguments>]
 
     Examples:
         gitget install 'https://github.com/awesmubarak/gitget'
         gitget install 'https://github.com/awesmubarak/gitget' 'gitget-download'
-        gitget install 'https://github.com/awesmubarak/gitget' --git-args="--recurse-submodules --jobs 8"
+        gitget install 'https://github.com/awesmubarak/gitget' --git-clone-args="--recurse-submodules --jobs 8"
         gitget install batch some_packages.txt
-        gitget install batch some_packages.txt --git-args="--filter=tree:0 --also-filter-submodules --recurse-submodules --jobs 8"
+        gitget install batch some_packages.txt --git-clone-args="--filter=tree:0 --also-filter-submodules --recurse-submodules --jobs 8"
     """
 
     def run(self):
@@ -126,9 +125,11 @@ class Install(Base):
             )
             return False
 
+        package = self.get_package_for_url(package_url, package_name, package_location)
+
         git_args = {}
-        if self.options["--git-args"] is not None:
-            args = shlex.split(self.options["--git-args"])
+        if self.options["--git-clone-args"] is not None:
+            args = shlex.split(self.options["--git-clone-args"])
             for i, arg in enumerate(args):
                 if arg.startswith("-"):
                     if arg.startswith("--"):
@@ -163,7 +164,7 @@ class Install(Base):
 
         # add package to package list
         logger.debug("Adding package to package list")
-        package_list[package_name] = package_location
+        package_list[package_name] = package
         self.write_package_list(package_list)
         logger.info("Saved package information")
         

@@ -35,7 +35,8 @@ class Rename(Base):
 
         # verify new name
         logger.debug(f"Verifying the new name: {new_name}")
-        package_path = package_list[package_name]
+        package = package_list[package_name]
+        package_path = package["path"]
         base_location = path.basename(package_path)
         location = path.join(base_location, new_name)
         location = path.abspath(location)
@@ -58,6 +59,8 @@ class Rename(Base):
         # update package list
         logger.debug("Updating package list")
         package_list.pop(package_name, None)
-        package_list[new_name] = location
+        package["name"] = new_name
+        package["path"] = location
+        package_list[new_name] = package
         self.write_package_list(package_list)
         logger.info("Saved package information")
