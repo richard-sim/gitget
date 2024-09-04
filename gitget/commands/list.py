@@ -11,11 +11,13 @@ class List(Base):
     Usage: gitget [global options] [options] list
 
     Options:
-        --format  Table format to pass to tabulate (default: simple_outline)
+        --format   Table format to pass to tabulate (default: mixed_grid)
+        --no-wrap  Do not wrap lines in the table
+        --width    Width of the table (default: 188)
 
     Examples:
         gitget list
-        gitget --format tsv list
+        gitget --format tsv --no-wrap list
         gitget --format html list
     """
 
@@ -43,9 +45,20 @@ class List(Base):
 
         table_format = self.options["--format"]
         if not table_format:
-            table_format = "simple_outline"
+            table_format = "mixed_grid"
+
+        width = 188
+        if self.options["--width"]:
+            width = int(self.options["--width"])
+
+        maxcolwidths = [30*width/188, 30*width/188, 18*width/188, 30*width/188, 40*width/188, 20*width/188, 20*width/188]
+        if self.options["--no-wrap"]:
+            maxcolwidths = [None] * 7
 
         logger.debug("Printing table")
         number_str = f"{len(package_list)} packages:"
-        table = tabulate(table, headers=["Package name", "Path", "Last Commit", "URL", "Description", "Topics", "License"], tablefmt=table_format)
+        table = tabulate(table,
+                         headers=["Package Name", "Path", "Last Commit", "URL", "Description", "Topics", "License"],
+                         maxcolwidths=maxcolwidths,
+                         tablefmt=table_format)
         logger.info(f"{number_str}\n\n{table}\n")

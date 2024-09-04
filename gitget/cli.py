@@ -12,7 +12,7 @@ Usage:
     gitget [options] update
     gitget [options] move <package_name> <location>
     gitget [options] rename <package_name> <new_name>
-    gitget [options] [--format=<tabulate-format>] list
+    gitget [options] [--format=<tabulate-format>] [--no-wrap] [--width=<table width>] list
     gitget [options] edit
     gitget [options] doctor
     gitget [options] setup
@@ -33,7 +33,10 @@ Options:
     --gitlab-auth-token=<auth-token>
                Auth token to use for authenticating with the GitLab API
     --format=<tabluate-format>
-               Table format to pass to tabulate (default: simple_outline)
+               Table format to pass to tabulate (default: mixed_grid)
+    --no-wrap  Do not wrap lines in the table
+    --width=<table width>
+               Width of the table (default: 188)
 
 Examples:
     gitget setup
