@@ -183,7 +183,29 @@ class Base(object):
         owner_name, repo_name = Base.get_owner_and_repo(url)
 
         url_parts = urlparse(url)
-        if "github.com" in url_parts.netloc:
+        if "gist.github.com" in url_parts.netloc:
+            gist = self.get_github_gist(url)
+            package = {
+                "name": package_name,
+                "path": package_path,
+                "owner": owner_name,
+                "repo": repo_name,
+                "url": url,
+                "description": gist.description,
+                "homepage": None,
+                "languages": [],
+                "size_kb": 0,
+                "stars": 0,
+                "watchers": 0,
+                "forks": len(gist.forks) if gist.forks is not None else 0,
+                "topics": [],
+                "license": None,
+                "created_at": gist.created_at,
+                "updated_at": gist.last_modified_datetime,
+                "last_commit_at": gist.updated_at,
+            }
+            return package
+        elif "github.com" in url_parts.netloc:
             repo = self.get_github_repo(url)
             license = repo.license
             if license is not None:
@@ -199,7 +221,7 @@ class Base(object):
                 "repo": repo_name,
                 "url": url,
                 "description": repo.description,
-                "homepage": repo.html_url,
+                "homepage": repo.homepage,
                 "languages": [repo.language] if repo.language is not None else [],
                 "size_kb": repo.size,
                 "stars": repo.stargazers_count,
@@ -372,6 +394,21 @@ class Base(object):
             repo = self.github.get_repo(f"{owner}/{repo}")
             self.update_github_rate_limit()
             return repo
+        except Exception as ex:
+            logger.error("Could not get GitHub repo:")
+            logger.error(ex)
+            exit(1)
+
+    def get_github_gist(self, package_url):
+        """Returns the GitHub gist object."""
+        if self.github is None:
+            self.init_github_client()
+        logger.debug(f"Getting GitHub gist for {package_url}")
+        try:
+            owner, gist = Base.get_owner_and_repo(package_url)
+            gist = self.github.get_gist(f"{gist}")
+            self.update_github_rate_limit()
+            return gist
         except Exception as ex:
             logger.error("Could not get GitHub repo:")
             logger.error(ex)
